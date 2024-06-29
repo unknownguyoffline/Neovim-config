@@ -1,0 +1,7 @@
+{
+	"semanticTokens.enable": true,
+	"coc.preferences.formatOnSave": true,
+	"clangd.arguments": [
+		"--header-insertion=never"
+	]
+}
