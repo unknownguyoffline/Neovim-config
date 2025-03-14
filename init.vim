@@ -5,6 +5,8 @@ set noswapfile
 set nowrap
 
 call plug#begin()
+Plug 'stevearc/oil.nvim'
+Plug 'olimorris/onedarkpro.nvim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'shaunsingh/nord.nvim'
 Plug 'nvim-lua/plenary.nvim'
@@ -17,15 +19,16 @@ Plug 'ellisonleao/gruvbox.nvim'
 call plug#end()
 
 lua << EOF
+require("oil").setup()
 require("telescope").setup
 {
-			\ defaults = {
-					\ file_ignore_patterns = 
+			 defaults = {
+					 file_ignore_patterns = 
 	{
-			\ "build"
-		  \ }
-				  \ }
-  \ }
+			 "build"
+		   }
+				   }
+   }
 
 EOF
 
@@ -116,8 +119,6 @@ augroup end
 
 " Applying code actions to the selected code block
 " Example: `<leader>aap` for current paragraph
-xmap <leader>a  <Plug>(coc-codeaction-selected)
-nmap <leader>a  <Plug>(coc-codeaction-selected)
 
 " Remap keys for applying code actions at the cursor position
 nmap <leader>ac  <Plug>(coc-codeaction-cursor)
@@ -191,9 +192,11 @@ nnoremap <silent><nowait> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
 nnoremap <silent><nowait> <space>p  :<C-u>CocListResume<CR>
 
+xmap <space>p  <Plug>(coc-codeaction-selected)
+nmap <space>p  <Plug>(coc-codeaction-selected)
+
 nnoremap <silent><nowait> <space><space> :Telescope find_files<CR>
 nnoremap <silent><nowait> <space>a :CocCommand clangd.switchSourceHeader<CR>
 nnoremap <silent><nowait> <space>e :NERDTreeToggle<CR>
-:set guicursor+=i:hor20-Cursor/lCursor
 
-colorscheme gruvbox 
+colorscheme onedark
