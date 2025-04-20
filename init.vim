@@ -3,8 +3,18 @@ set shiftwidth=4
 set tabstop=4
 set noswapfile
 set nowrap
+set laststatus=0
+set cmdheight=0
+set termguicolors
 
 call plug#begin()
+Plug 'habamax/vim-gruvbit'
+Plug 'akinsho/toggleterm.nvim', {'tag' : '*'}
+Plug 'lukas-reineke/indent-blankline.nvim'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'Mofiqul/vscode.nvim'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
 Plug 'stevearc/oil.nvim'
 Plug 'olimorris/onedarkpro.nvim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -16,20 +26,109 @@ Plug 'AlexvZyl/nordic.nvim', { 'branch': 'main' }
 Plug 'projekt0n/github-nvim-theme'
 Plug 'tikhomirov/vim-glsl'
 Plug 'ellisonleao/gruvbox.nvim'
+Plug 'fannheyward/telescope-coc.nvim'
+Plug 'luisiacc/gruvbox-baby', {'branch': 'main'}
 call plug#end()
 
 lua << EOF
+require("toggleterm").setup({
+	direction = "float",
+	shell = "bash",
+	float_opts = {
+		border = "single"
+	},
+})
 require("oil").setup()
+require("ibl").setup()
 require("telescope").setup
 {
-			 defaults = {
-					 file_ignore_patterns = 
+	defaults = 
 	{
-			 "build"
-		   }
-				   }
-   }
+		file_ignore_patterns = 
+		{
+			"build",
+			"engine/vendor/"
+		}
+	},
+  extensions = {
+    coc = {
+        theme = 'ivy',
+        prefer_locations = true, -- always use Telescope locations to preview definitions/declarations/implementations etc
+        push_cursor_on_edit = true, -- save the cursor position to jump back in the future
+        timeout = 3000, -- timeout for coc commands
+    }
+  },
+}
+require('telescope').load_extension('coc')
+require('gruvbox').setup({
+	italic = {
+    strings = false,
+    emphasis = false,
+    comments = false,
+    operators = false,
+    folds = false,
+  },
+	bold = false,
+   })
+local c = require('vscode.colors').get_colors()
+local hl = vim.api.nvim_set_hl
+require('vscode').setup({
+    -- Alternatively set style in setup
+    -- style = 'light'
 
+    -- Enable transparent background
+    transparent = true,
+
+    -- Enable italic comment
+    italic_comments = false,
+
+    -- Underline `@markup.link.*` variants
+    underline_links = true,
+
+    -- Disable nvim-tree background color
+    disable_nvimtree_bg = true,
+
+    -- Apply theme colors to terminal
+    terminal_colors = true,
+
+    -- Override colors (see ./lua/vscode/colors.lua)
+    color_overrides = {
+        vscLineNumber = '#575757',
+    },
+
+    -- Override highlight groups (see ./lua/vscode/theme.lua)
+    group_overrides = {
+        -- this supports the same val table as vim.api.nvim_set_hl
+        -- use colors from this colorscheme by requiring vscode.colors!
+        Cursor = { fg=c.vscDarkBlue, bg=c.vscLightGreen, bold=true },
+
+    }
+})
+require('vscode').load()
+require'nvim-treesitter.configs'.setup {
+  -- A list of parser names, or "all" (the listed parsers MUST always be installed)
+
+  -- Install parsers synchronously (only applied to `ensure_installed`)
+
+  -- Automatically install missing parsers when entering buffer
+  -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+
+  -- List of parsers to ignore installing (or "all")
+
+  ---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
+  -- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
+
+  highlight = {
+    enable = true,
+
+    -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
+    -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
+    -- the name of the parser)
+    -- list of language that will be disabled
+    -- Instead of true it can also be a list of languages
+    additional_vim_regex_highlighting = false,
+  },
+}
 EOF
 
 " https://raw.githubusercontent.com/neoclide/coc.nvim/master/doc/coc-example-config.vim
@@ -54,17 +153,18 @@ set signcolumn=yes
 " no select by `"suggest.noselect": true` in your configuration file
 " NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
 " other plugin before putting this into your config
+"inoremap <silent><expr> <TAB>
+"      \ coc#pum#visible() ? coc#pum#next(1) :
+"      \ CheckBackspace() ? "\<Tab>" :
+"      \ coc#refresh()
 inoremap <silent><expr> <TAB>
-      \ coc#pum#visible() ? coc#pum#next(1) :
-      \ CheckBackspace() ? "\<Tab>" :
-      \ coc#refresh()
+      \ coc#pum#visible() ? coc#pum#confirm() : "\<Tab>"
 inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 
 " Make <CR> to accept selected completion item or notify coc.nvim to format
 " <C-g>u breaks current undo, please make your own choice
 inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
                               \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
-
 function! CheckBackspace() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
@@ -182,7 +282,7 @@ set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 " Show commands
 nnoremap <silent><nowait> <space>c  :<C-u>CocList commands<cr>
 " Find symbol of current document
-nnoremap <silent><nowait> <space>o  :<C-u>CocList outline<cr>
+nnoremap <silent><nowait> <space>o  :<C-u>Telescope coc document_symbols<cr>
 " Search workspace symbols
 nnoremap <silent><nowait> <space>s  :<C-u>CocList -I symbols<cr>
 " Do default action for next item
@@ -191,12 +291,61 @@ nnoremap <silent><nowait> <space>j  :<C-u>CocNext<CR>
 nnoremap <silent><nowait> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
 nnoremap <silent><nowait> <space>p  :<C-u>CocListResume<CR>
+nnoremap <silent><nowait> <C-m>  :bd<CR>
 
 xmap <space>p  <Plug>(coc-codeaction-selected)
 nmap <space>p  <Plug>(coc-codeaction-selected)
 
-nnoremap <silent><nowait> <space><space> :Telescope find_files<CR>
+nnoremap <silent><nowait> <space><space> :FZF<CR>
 nnoremap <silent><nowait> <space>a :CocCommand clangd.switchSourceHeader<CR>
-nnoremap <silent><nowait> <space>e :NERDTreeToggle<CR>
+nnoremap <silent><nowait> <space>e :lua require("oil").open_float()<CR>
+map <silent><nowait> <C-t> :ToggleTerm<CR>
+
+
 
 colorscheme onedark
+
+lua << EOF
+vim.api.nvim_set_hl(0, "Normal", {fg = "NONE", bg = "#1E1F21"})
+vim.api.nvim_set_hl(0, "NormalNC", {fg = "NONE", bg = "#1E1F21"})
+vim.api.nvim_set_hl(0, "LineNr", {fg = "#707070", bg = "#1E1F21"})
+vim.api.nvim_set_hl(0, "SignColumn", {fg = "NONE", bg = "#1E1F21"})
+vim.api.nvim_set_hl(0, "CocSemTypeMethod", {fg = "#7EA3BD", bg = "NONE"})
+vim.api.nvim_set_hl(0, "CocSemTypeFunction", {fg = "#7EA3BD", bg = "NONE"})
+vim.api.nvim_set_hl(0, "CocSemTypeMacro", {fg = "#7EA3BD", bg = "NONE"})
+vim.api.nvim_set_hl(0, "@type", {fg = "#BC9AC3", bg = "NONE"})
+vim.api.nvim_set_hl(0, "@keyword", {fg = "#BC9AC3", bg = "NONE"})
+vim.api.nvim_set_hl(0, "@operator", {fg = "#93BBB7", bg = "NONE"})
+vim.api.nvim_set_hl(0, "@punctuation.bracket", {fg = "#BC9AC3", bg = "NONE"})
+
+
+local highlight = {
+    "RainbowRed",
+    "RainbowYellow",
+    "RainbowBlue",
+    "RainbowOrange",
+    "RainbowGreen",
+    "RainbowViolet",
+    "RainbowCyan",
+}
+local hooks = require "ibl.hooks"
+-- create the highlight groups in the highlight setup hook, so they are reset
+-- every time the colorscheme changes
+hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+    vim.api.nvim_set_hl(0, "RainbowRed", { fg = "#E06C75" })
+    vim.api.nvim_set_hl(0, "RainbowYellow", { fg = "#E5C07B" })
+    vim.api.nvim_set_hl(0, "RainbowBlue", { fg = "#61AFEF" })
+    vim.api.nvim_set_hl(0, "RainbowOrange", { fg = "#D19A66" })
+    vim.api.nvim_set_hl(0, "RainbowGreen", { fg = "#98C379" })
+    vim.api.nvim_set_hl(0, "RainbowViolet", { fg = "#C678DD" })
+    vim.api.nvim_set_hl(0, "RainbowCyan", { fg = "#56B6C2" })
+end)
+
+vim.g.rainbow_delimiters = { highlight = highlight }
+require("ibl").setup { scope = { highlight = highlight } }
+
+hooks.register(hooks.type.SCOPE_HIGHLIGHT, hooks.builtin.scope_highlight_from_extmark)
+
+
+EOF
+
