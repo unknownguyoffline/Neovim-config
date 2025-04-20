@@ -1,7 +1,17 @@
 {
 	"semanticTokens.enable": true,
-	"coc.preferences.formatOnSave": true,
+	"inlayHint.enable": false,
 	"clangd.arguments": [
 		"--header-insertion=never"
-	]
+	],
+	"coc.preferences.formatOnType": true,
+	"coc.preferences.formatOnSave": true,
+	"cmake.formatter": "",
+	"suggest.virtualText": true,
+	"suggest.enableFloat": false,
+	"suggest.labelMaxLength": 15,
+	"diagnostic.virtualText": true,
+	"suggest.floatConfig": {
+		"border": true
+	}
 }
